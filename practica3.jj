@@ -1,0 +1,319 @@
+PARSER_BEGIN(Practica3)
+
+/** Simple brace matcher. */
+public class Practica3 {
+
+  /** Main entry point. */
+  public static void main(String args[]) throws ParseException {
+    Practica3 parser = new Practica3(System.in);
+    parser.Input();
+  }
+  /**
+  * Regresa el tipo de mayor tamaño entre dos números
+  */
+  static int max(int a, int b) {return a>b?a:b;}
+
+  /**
+  * Recibe el tipo al que se debe transformar y el valor.
+  */
+  static Lex ampliar(int tipo, Lex valor){
+	Lex nuevoTipo = new Lex();
+	//System.out.println("\nAmpliar valor que es tipo : " + valor.getTipo());
+	//System.out.println("Se convertira a tipo -> " + tipo);
+	switch(tipo){
+		case 2: //convertir char a char
+			nuevoTipo.setValChar(valor.getValChar());
+			break;
+		case 4: //convertir char o int --> int
+			switch(valor.tipo){
+				case 2:
+					nuevoTipo.setValInt((int) valor.getValChar());
+					break;
+				case 4:
+					nuevoTipo.setValInt((int) valor.getValInt());
+					break;
+			} 
+			break;
+		case 6: //convertir char o int o float --> float
+			switch(valor.tipo){
+				case 2:
+					nuevoTipo.setValFloat((float) valor.getValChar());
+					break;
+				case 4:
+					nuevoTipo.setValFloat((float) valor.getValInt());
+					break;
+				case 6:
+					nuevoTipo.setValFloat((float) valor.getValFloat());
+					break;
+			} 
+			break;
+		}
+	nuevoTipo.tipo = tipo;
+	return nuevoTipo;
+   }
+}
+
+PARSER_END(Practica3)
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+TOKEN :
+{
+  <LBRACE: "{">
+| <OPMUL: "*">
+| <OPDIV: "/">
+| <OPMOD: "%">
+| <OPSUM: "+">
+| <OPRES: "-">
+| <ENTERO: (<DIGDEC>)+>
+| <FLOTANTE: <ENTERO>"."<ENTERO>>
+| <CARACTER: "\'"<AZ>"\'">
+| <PCOMA: ";">
+| <APAR: "(">
+| <CPAR: ")">
+| <DIGDEC: ["0"-"9"]>
+| <INT: "int">
+| <ADD: ("ADD" | "add")>
+| <HEX8:  "0"("X"|"x")(<DIGHEX>){1,2}>
+| <HEX16: "0"("X"|"x")(<DIGHEX>){3,4}>
+| <HEX32: "0"("X"|"x")(<DIGHEX>){5,8}> 
+| <HEX: "0"("X"|"x")(<DIGHEX>)+>
+| <ID: <AZ>(<AZ>|<DIGDEC>|"_")*> 
+| <AZ: ["a"-"z"] | ["A"-"Z"]>
+| <DIGHEX: (["a"-"f"]|["A"-"F"]|<DIGDEC>)>
+
+}
+
+/** Root production. */
+void Input() :
+{}
+{
+   (Exp())+ <EOF>
+}
+
+
+/* Gramática con reglas semánticas
+
+S    ->    TS'
+S'   ->    (+ | -)TS'
+S'   ->    epsilon
+T    ->    FT'
+T'   ->    (* | / | %)FT'
+T'   ->    epsilon
+F    ->    numdec
+F    ->    (S)
+
+*/
+
+
+
+Lex Exp(): //Inicio de reglas semánticas
+{	
+	Lex val;
+}
+{
+		val = S()
+		{
+			return val;
+		}
+}
+
+Lex S():
+{
+	Lex L, sin;
+}
+{
+	L=T() sin=Sprima(L) /*El valor es igual a T() y sintetizado es el resultado de Sprima al que se le envía como parámetro el valor (S -> TS')*/
+	{
+		switch(sin.getTipo()){ //Imprime el valor de acuerdo a su tipo
+			case 2:
+				System.out.println("\nS = " + sin.getValChar());
+				System.out.println("Tipo = " + sin.getTipo());
+				break;
+			case 4:
+				System.out.println("\nS = " + sin.getValInt());
+				System.out.println("Tipo = " + sin.getTipo());
+				break;
+			case 6:
+				System.out.println("\nS = " + sin.getValFloat());
+				System.out.println("Tipo = " + sin.getTipo());
+				break;
+		}
+		return sin;
+	}
+}
+
+Lex Sprima(Lex her) : //S' recibe un heredado ( S' -> (+|-)TS' | epsilon)
+{
+	Lex L, sin, a1, a2;
+	int tipo;
+}
+{
+	[<OPSUM> L=T() 
+	{
+		tipo=max(her.getTipo(),L.getTipo()); //Lee los números y compara cuál es mayor para obtener el tipo de mayor jerarquía
+		a1 = ampliar(tipo,her); //Acomoda a la mayor jerarquía encontrada el primer valor
+		a2 = ampliar(tipo,L); //Acomoda a la mayor jerarquía encontrada el segundo valor
+
+
+		switch(tipo){ //Hace la operación de acuerdo al tipo
+			case 2: //char
+				a1.setValChar(a1.getValChar() + a2.getValChar());
+				a1.valChar += a2.valChar;
+				break;
+			case 4: //int
+				a1.setValInt(a1.getValInt() + a2.getValInt());
+				// a1.valInt += a2.valInt;
+				break;
+			case 6: //float
+				a1.setValFloat(a1.getValFloat() + a2.getValFloat());
+				// a1.valFloat += a2.valFloat;
+				break;
+		}
+		sin=Sprima(a1);
+		return sin;
+	}
+	| <OPRES> L=T() 
+	{
+		tipo = max(her.getTipo(),L.getTipo()); //Lee los números y compara cuál es mayor para obtener el tipo de mayor jerarquía
+		a1 = ampliar(tipo,her); //Acomoda a la mayor jerarquía encontrada el primer valor
+		a2 = ampliar(tipo,L); //Acomoda a la mayor jerarquía encontrada el segundo valor
+		switch(tipo){ //Hace la operación de acuerdo al tipo
+			case 2: //char
+				a1.valChar -= a2.valChar;
+				break;
+			case 4: //int
+				a1.valInt -= a2.valInt;
+				break;
+			case 6: //float
+				a1.valFloat -= a2.valFloat;
+				break;
+		}
+		sin=Sprima(a1);
+		return sin;
+	}]
+	{ //Si no hay operación de este tipo entonces sólo regresa el valor que recibió
+		return her;
+	}
+}
+
+Lex T() :
+{
+	Lex L, sin;	
+}
+{
+	L=F() sin=Tprima(L)
+	{
+		return sin;
+	}
+}
+
+
+
+Lex Tprima(Lex her) :
+{
+	Lex L,sin,a1,a2;
+	int tipo;
+}
+{
+	[<OPMUL> L=F() 
+	{
+		tipo = max(her.getTipo(), L.getTipo()); //Lee los números y compara cuál es mayor para obtener el tipo de mayor jerarquía
+		a1 = ampliar(tipo,her); //Acomoda a la mayor jerarquía encontrada el primer valor
+		a2 = ampliar(tipo,L); //Acomoda a la mayor jerarquía encontrada el segundo valor
+		switch(tipo){ //Hace la operación de acuerdo al tipo
+			case 2: //char
+				a1.valChar *= a2.valChar;
+				break;
+			case 4: //int
+				a1.valInt *= a2.valInt;
+				break;
+			case 6: //float
+				a1.valFloat *= a2.valFloat;
+				break;
+		}
+		sin = Tprima(a1);
+		return sin;
+	}
+	| <OPDIV> L=F() 
+	{
+		tipo = max(her.getTipo(),L.getTipo()); //Lee los números y compara cuál es mayor para obtener el tipo de mayor jerarquía
+		a1 = ampliar(tipo,her); //Acomoda a la mayor jerarquía encontrada el primer valor
+		a2 = ampliar(tipo,L); //Acomoda a la mayor jerarquía encontrada el segundo valor
+		if ((a1.valInt % a2.valInt) != 0) //Si el módulo es diferente de cero quiere decir que quedarán valores decimales, el tipo pasa entonces a 6 y se 											convierten los números a float para obtener los decimales también
+		{  
+			tipo = 6;
+			a1 = ampliar(tipo,her);
+			a2 = ampliar(tipo,L);
+		}
+
+		switch(tipo){ //Hace la operación de acuerdo al tipo
+			case 2: //char
+				a1.valChar /= a2.valChar;
+				break;
+			case 4: //int
+				a1.valInt /= a2.valInt;
+				break;
+			case 6: //float
+				a1.valFloat /= a2.valFloat;
+				break;
+		}
+		sin=Tprima(a1);
+		return sin;
+	}
+	| <OPMOD> L=F() 
+	{
+		tipo = max(her.getTipo(),L.getTipo()); //Lee los números y compara cuál es mayor para obtener el tipo de mayor jerarquía
+		a1 = ampliar(tipo,her); //Acomoda a la mayor jerarquía encontrada el primer valor
+		a2 = ampliar(tipo,L); //Acomoda a la mayor jerarquía encontrada el segundo valor
+		switch(tipo){ //Hace la operación de acuerdo al tipo
+			case 2: //char
+				a1.valChar %= a2.valChar;
+				break;
+			case 4: //int
+				a1.valInt %= a2.valInt;
+				break;
+			case 6: //float
+				a1.valFloat %= a2.valFloat;
+				break;
+		}
+		sin=Tprima(a1);
+		return sin;
+	}]
+	{ //Si no hay operación de este tipo entonces sólo regresa el valor que recibió
+		return her;
+	}
+}
+
+Lex F():
+{
+	Token valorIngresado;
+	Lex valor;
+}
+{ 
+	valorIngresado=<ENTERO> 
+	{	
+		Lex lexint = new Lex(Integer.valueOf(valorIngresado.image));
+		/*System.out.println("\nValor = " + lexint.getValInt());
+		System.out.println("\nTipo = " + lexint.getTipo());*/
+		return lexint;
+	} 
+	| valorIngresado=<FLOTANTE> 
+	{
+		Lex lexfloat = new Lex(Float.valueOf(valorIngresado.image)); 
+		/*System.out.println("\nValor = " + lexfloat.getValFloat()); 
+		System.out.println("\nTipo = " + lexfloat.getTipo());*/
+		return lexfloat;
+	}
+	| <APAR> valor = Exp() <CPAR>  //Permite uso de paréntesis en expresiones
+	{
+		return valor;			
+	}
+}
+
