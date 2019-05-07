@@ -25,7 +25,7 @@ public class Practica3 {
 			nuevoTipo.setValChar(valor.getValChar());
 			break;
 		case 4: //convertir char o int --> int
-			switch(valor.tipo){
+			switch(valor.getTipo()){
 				case 2:
 					nuevoTipo.setValInt((int) valor.getValChar());
 					break;
@@ -35,7 +35,7 @@ public class Practica3 {
 			}
 			break;
 		case 6: //convertir char o int o float --> float
-			switch(valor.tipo){
+			switch(valor.getTipo()){
 				case 2:
 					nuevoTipo.setValFloat((float) valor.getValChar());
 					break;
@@ -48,7 +48,9 @@ public class Practica3 {
 			}
 			break;
 		}
-	nuevoTipo.tipo = tipo;
+	
+	nuevoTipo.setTipo(tipo);
+	//nuevoTipo.tipo = tipo;
 	return nuevoTipo;
    }
 }
@@ -164,7 +166,7 @@ Lex Sprima(Lex her) : //S' recibe un heredado ( S' -> (+|-)TS' | epsilon)
 
 		switch(tipo){ //Hace la operación de acuerdo al tipo
 			case 2: //char
-				a1.setValChar(a1.getValChar() + a2.getValChar());
+				a1.setValChar((char)(a1.getValChar() + a2.getValChar()));
 				//a1.valChar += a2.valChar;
 				break;
 			case 4: //int
@@ -186,7 +188,7 @@ Lex Sprima(Lex her) : //S' recibe un heredado ( S' -> (+|-)TS' | epsilon)
 		a2 = ampliar(tipo,L); //Acomoda a la mayor jerarquía encontrada el segundo valor
 		switch(tipo){ //Hace la operación de acuerdo al tipo
 			case 2: //char
-        a1.setValChar(a1.getValChar() - a2.getValChar());
+        a1.setValChar((char)(a1.getValChar() - a2.getValChar()));
         //a1.valChar -= a2.valChar;
 				break;
 			case 4: //int
@@ -232,7 +234,7 @@ Lex Tprima(Lex her) :
 		a2 = ampliar(tipo,L); //Acomoda a la mayor jerarquía encontrada el segundo valor
 		switch(tipo){ //Hace la operación de acuerdo al tipo
 			case 2: //char
-        a1.setValChar(a1.getValChar() * a2.getValChar());
+        a1.setValChar((char)(a1.getValChar() * a2.getValChar()));
 			//	a1.valChar *= a2.valChar;
 				break;
 			case 4: //int
@@ -250,7 +252,7 @@ Lex Tprima(Lex her) :
 		tipo = max(her.getTipo(),L.getTipo()); //Lee los números y compara cuál es mayor para obtener el tipo de mayor jerarquía
 		a1 = ampliar(tipo,her); //Acomoda a la mayor jerarquía encontrada el primer valor
 		a2 = ampliar(tipo,L); //Acomoda a la mayor jerarquía encontrada el segundo valor
-		if ((a1.valInt % a2.valInt) != 0) //Si el módulo es diferente de cero quiere decir que quedarán valores decimales, el tipo pasa entonces a 6 y se 											convierten los números a float para obtener los decimales también
+		if ((a1.getValInt() % a2.getValInt()) != 0) //Si el módulo es diferente de cero quiere decir que quedarán valores decimales, el tipo pasa entonces a 6 y se 											convierten los números a float para obtener los decimales también
 		{
 			tipo = 6;
 			a1 = ampliar(tipo,her);
@@ -259,7 +261,7 @@ Lex Tprima(Lex her) :
 
 		switch(tipo){ //Hace la operación de acuerdo al tipo
 			case 2: //char
-        a1.setValChar(a1.getValChar() / a2.getValChar());
+        a1.setValChar((char)(a1.getValChar() / a2.getValChar()));
         //a1.valChar /= a2.valChar;
 				break;
 			case 4: //int
@@ -281,7 +283,7 @@ Lex Tprima(Lex her) :
 		a2 = ampliar(tipo,L); //Acomoda a la mayor jerarquía encontrada el segundo valor
 		switch(tipo){ //Hace la operación de acuerdo al tipo
 			case 2: //char
-          a1.setValChar(a1.getValChar() % a2.getValChar());
+          a1.setValChar((char)(a1.getValChar() % a2.getValChar()));
       //	a1.valChar %= a2.valChar;
 				break;
 			case 4: //int
