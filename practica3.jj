@@ -89,6 +89,7 @@ TOKEN :
 | <ID: <AZ>(<AZ>|<DIGDEC>|"_")*>
 | <AZ: ["a"-"z"] | ["A"-"Z"]>
 | <DIGHEX: (["a"-"f"]|["A"-"F"]|<DIGDEC>)>
+| <TIPO: "byte"|"boolean"|"char"|"short"|"int"|"long"|"float"|"double">
 
 }
 
@@ -97,6 +98,12 @@ void Input() :
 {}
 {
    (Exp())+ <EOF>
+}
+
+void Lexico() :
+{}
+{
+	
 }
 
 
@@ -322,6 +329,11 @@ Lex F():
 		/*System.out.println("\nValor = " + lexfloat.getValFloat());
 		System.out.println("\nTipo = " + lexfloat.getTipo());*/
 		return lexfloat;
+	}
+	| valorIngresado = <CARACTER>
+	{
+		Lex lexchar = new Lex(Character.valueOf(valorIngresado.image.charAt(1)));
+		return lexchar;
 	}
 	| <APAR> valor = Exp() <CPAR>  //Permite uso de paréntesis en expresiones
 	{
